@@ -1,0 +1,27 @@
+name: Daily Jazz Recommendation
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 毎日 09:00 JST（UTC 00:00）
+  workflow_dispatch:       # 手動実行もできるようにしておく
+
+jobs:
+  jazz:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Run daily jazz
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python daily_jazz.py
