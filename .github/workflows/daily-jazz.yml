@@ -24,4 +24,14 @@ jobs:
       - name: Run daily jazz
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python daily_jazz.py
+        run: python daily_jazz.py > jazz_output.txt
+
+      - name: Create GitHub Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TODAY=$(date '+%Y-%m-%d')
+          gh issue create \
+            --title "🎷 Daily Jazz: $TODAY" \
+            --body "$(cat jazz_output.txt)" \
+            --label "daily-jazz"
