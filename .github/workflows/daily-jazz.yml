@@ -24,9 +24,22 @@ jobs:
       - name: Install dependencies
         run: pip install anthropic
 
+      - name: Fetch past songs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue list --label "daily-jazz" --limit 50 --json body \
+            | jq -r '.[].body' \
+            | grep -oP '(?<=\*\*曲名\*\*: ).+' \
+            >> past_songs.txt || true
+          echo "PAST_SONGS<<EOF" >> $GITHUB_ENV
+          cat past_songs.txt >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
       - name: Run daily jazz
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PAST_SONGS: ${{ env.PAST_SONGS }}
         run: python tasks/daily_jazz.py > jazz_output.txt
 
       - name: Create GitHub Issue

@@ -1,5 +1,6 @@
 import anthropic
 import datetime
+import os
 
 PROMPT = """
 あなたはジャズの案内人です。
@@ -8,10 +9,10 @@ PROMPT = """
 ---
 🎷 今日の1曲
 
-**曲名**: 
-**アーティスト**: 
+**曲名**:
+**アーティスト**:
 **アルバム**: （あれば）
-**年**: 
+**年**:
 
 **一言**: （その曲の魅力を2〜3文で）
 
@@ -20,7 +21,7 @@ PROMPT = """
 **豆知識**: （知ると聴き方が変わるエピソードを1つ）
 ---
 
-毎回異なる曲を選んでください。モダンジャズ、ビバップ、フュージョン、ボサノバなど幅広いジャンルから選んでください。
+モダンジャズ、ビバップ、フュージョン、ボサノバなど幅広いジャンルから選んでください。
 """
 
 
@@ -30,10 +31,15 @@ def main():
     today = datetime.date.today().strftime("%Y-%m-%d")
     print(f"=== 🎵 Daily Jazz: {today} ===\n")
 
+    past_songs = os.environ.get("PAST_SONGS", "").strip()
+    prompt = PROMPT
+    if past_songs:
+        prompt += f"\n以下の曲はすでに紹介済みです。これらは選ばないでください:\n{past_songs}\n"
+
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=1024,
-        messages=[{"role": "user", "content": PROMPT}],
+        messages=[{"role": "user", "content": prompt}],
     )
 
     block = message.content[0]
