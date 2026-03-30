@@ -1,8 +1,6 @@
-import anthropic
 import datetime
-from typing import cast
 
-from anthropic.types import MessageParam
+import anthropic
 
 PROMPT = """
 東京で今週末（{date_range}）に開催される、デートに使いやすいイベントを3件紹介してください。
@@ -37,32 +35,16 @@ def main():
 
     print(f"=== 🗓️ 今週末の東京イベント: {sat.strftime('%Y-%m-%d')} ===\n")
 
-    messages: list[MessageParam] = [{"role": "user", "content": PROMPT.format(date_range=date_range)}]
+    response = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=1500,
+        tools=[{"type": "web_search_20250305", "name": "web_search"}],
+        messages=[{"role": "user", "content": PROMPT.format(date_range=date_range)}],
+    )
 
-    while True:
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1500,
-            tools=[{"type": "web_search_20250305", "name": "web_search"}],
-            messages=messages,
-        )
-
-        for block in response.content:
-            if isinstance(block, anthropic.types.TextBlock):
-                print(block.text)
-
-        if response.stop_reason != "tool_use":
-            break
-
-        messages.append(cast(MessageParam, {"role": "assistant", "content": response.content}))
-        messages.append(cast(MessageParam, {
-            "role": "user",
-            "content": [
-                {"type": "tool_result", "tool_use_id": block.id, "content": ""}
-                for block in response.content
-                if block.type == "tool_use"
-            ],
-        }))
+    for block in response.content:
+        if isinstance(block, anthropic.types.TextBlock):
+            print(block.text)
 
 
 if __name__ == "__main__":

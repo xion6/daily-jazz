@@ -1,6 +1,7 @@
-import anthropic
 import datetime
 import os
+
+import anthropic
 
 PROMPT = """
 あなたはジャズの案内人です。
