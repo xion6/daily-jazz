@@ -1,0 +1,40 @@
+name: Weekly Tokyo Events
+
+on:
+  schedule:
+    - cron: '0 22 * * 5'  # 毎週土曜 07:00 JST（金曜 UTC 22:00）
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  events:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install anthropic
+
+      - name: Run daily events
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python tasks/daily_events.py > events_output.txt
+
+      - name: Create GitHub Issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SAT=$(date -d 'next saturday' '+%Y-%m-%d' 2>/dev/null || date -v+sat '+%Y-%m-%d')
+          gh issue create \
+            --title "🗓️ 今週末の東京イベント: $SAT" \
+            --body "$(cat events_output.txt)" \
+            --label "weekly-events"
