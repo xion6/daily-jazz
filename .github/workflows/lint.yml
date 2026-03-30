@@ -21,7 +21,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install anthropic pyright
+        run: pip install anthropic pyright ruff
+
+      - name: Format check
+        run: ruff format --check tasks/
+
+      - name: Lint
+        run: ruff check tasks/
 
       - name: Type check
         run: pyright tasks/
