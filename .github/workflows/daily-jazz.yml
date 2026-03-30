@@ -2,7 +2,7 @@ name: Daily Jazz Recommendation
 
 on:
   schedule:
-    - cron: '0 0 * * *'  # 毎日 09:00 JST（UTC 00:00）
+    - cron: '0 22 * * *'  # 毎日 07:00 JST（UTC 22:00 前日）
   workflow_dispatch:       # 手動実行もできるようにしておく
 
 env:
