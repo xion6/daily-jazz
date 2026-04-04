@@ -1,4 +1,5 @@
 import datetime
+import zoneinfo
 
 import anthropic
 
@@ -27,7 +28,7 @@ PROMPT = """
 def main():
     client = anthropic.Anthropic()
 
-    today = datetime.date.today()
+    today = datetime.datetime.now(tz=zoneinfo.ZoneInfo("Asia/Tokyo")).date()
     days_to_sat = (5 - today.weekday()) % 7 or 7
     sat = today + datetime.timedelta(days=days_to_sat)
     sun = sat + datetime.timedelta(days=1)
