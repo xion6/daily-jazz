@@ -41,7 +41,7 @@ gh label create weekly-events --color 0075CA
 ## ローカル実行
 
 ```bash
-pip install anthropic httpx
+pip install anthropic httpx ruff pyright
 
 # シークレットを環境変数に設定
 export ANTHROPIC_API_KEY=sk-ant-...
@@ -51,6 +51,11 @@ python tasks/daily_jazz.py
 
 # 東京イベント
 python tasks/daily_events.py
+
+# フォーマット・型チェック
+ruff format tasks/
+ruff check tasks/
+pyright tasks/
 ```
 
 ## 仕組み

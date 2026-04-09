@@ -48,9 +48,7 @@ DESCRIPTION_PROMPT = """\
 """
 
 
-def fetch_random_jazz_track(
-    year_start: int, year_end: int, past_titles: set[str]
-) -> dict | None:
+def fetch_random_jazz_track(year_start: int, year_end: int, past_titles: set[str]) -> dict | None:
     offsets = random.sample(range(0, 200, 25), 5)
     term = random.choice(JAZZ_SEARCH_TERMS)
 
