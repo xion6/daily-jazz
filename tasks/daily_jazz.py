@@ -3,6 +3,12 @@ import os
 
 import anthropic
 
+ERA_PROMPTS = [
+    "1940〜1960年代のジャズ（ビバップ、ハードバップ、クールジャズなど黄金期）から選んでください。",
+    "1970〜1990年代のジャズ（フュージョン、スムースジャズ、ECMレーベル系など）から選んでください。",
+    "2000年以降のコンテンポラリージャズから選んでください。",
+]
+
 PROMPT = """
 あなたはジャズの案内人です。
 今日おすすめのジャズを1曲、以下のフォーマットで紹介してください。
@@ -22,7 +28,7 @@ PROMPT = """
 **豆知識**: （知ると聴き方が変わるエピソードを1つ）
 ---
 
-モダンジャズ、ビバップ、フュージョン、ボサノバなど幅広いジャンルから選んでください。
+{era_instruction}
 """
 
 
@@ -32,8 +38,11 @@ def main():
     today = datetime.date.today().strftime("%Y-%m-%d")
     print(f"=== 🎵 Daily Jazz: {today} ===\n")
 
+    era_index = datetime.date.today().toordinal() % 3
+    era_instruction = ERA_PROMPTS[era_index]
+    prompt = PROMPT.format(era_instruction=era_instruction)
+
     past_songs = os.environ.get("PAST_SONGS", "").strip()
-    prompt = PROMPT
     if past_songs:
         prompt += f"\n以下の曲はすでに紹介済みです。これらは選ばないでください:\n{past_songs}\n"
 
