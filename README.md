@@ -41,17 +41,20 @@ gh label create weekly-events --color 0075CA
 ## ローカル実行
 
 ```bash
-pip install anthropic
+pip install anthropic httpx
+
+# シークレットを環境変数に設定
+export ANTHROPIC_API_KEY=sk-ant-...
 
 # ジャズ推薦
-ANTHROPIC_API_KEY=your_key python tasks/daily_jazz.py
+python tasks/daily_jazz.py
 
 # 東京イベント
-ANTHROPIC_API_KEY=your_key python tasks/daily_events.py
+python tasks/daily_events.py
 ```
 
 ## 仕組み
 
-- **daily_jazz.py** — 過去 Issue の曲名を取得し、重複を避けながら新しい1曲を推薦
+- **daily_jazz.py** — iTunes Search API（認証不要・無料）から年代別にジャズをランダム取得し、Claudeが紹介文を生成。Apple MusicリンクをIssueに掲載
 - **daily_events.py** — Web 検索ツール付きで今週末の東京イベントを検索・紹介
 - 型チェック（Pyright）は push / PR 時に自動実行
