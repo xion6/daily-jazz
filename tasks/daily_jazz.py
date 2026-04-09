@@ -1,6 +1,7 @@
 import datetime
 import os
 import random
+import sys
 
 import anthropic
 import httpx
@@ -66,8 +67,10 @@ def fetch_random_jazz_track(year_start: int, year_end: int, past_titles: set[str
         )
         response.raise_for_status()
 
-        tracks = response.json().get("results", [])
-        tracks = [t for t in tracks if t.get("primaryGenreName") == "Jazz"]
+        raw = response.json().get("results", [])
+        print(f"[debug] term={term!r} offset={offset} raw={len(raw)}", file=sys.stderr, flush=True)
+
+        tracks = [t for t in raw if t.get("primaryGenreName") == "Jazz"]
         tracks = [
             t
             for t in tracks
@@ -76,6 +79,7 @@ def fetch_random_jazz_track(year_start: int, year_end: int, past_titles: set[str
             and year_start <= int(release[:4]) <= year_end
         ]
         tracks = [t for t in tracks if t.get("trackName") not in past_titles]
+        print(f"[debug] after filters={len(tracks)}", file=sys.stderr, flush=True)
         if tracks:
             return random.choice(tracks)
 
@@ -99,8 +103,8 @@ def main():
     track = fetch_random_jazz_track(year_start, year_end, past_titles)
 
     if track is None:
-        print("Apple Musicから曲を取得できませんでした。")
-        return
+        print("Apple Musicから曲を取得できませんでした。", file=sys.stderr)
+        sys.exit(1)
 
     title = track["trackName"]
     artist = track["artistName"]
