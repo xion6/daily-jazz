@@ -6,24 +6,37 @@ import sys
 import anthropic
 import httpx
 
-ERA_YEAR_RANGES = [
-    ((1940, 1969), "1940〜1960年代"),
-    ((1970, 1999), "1970〜1990年代"),
-    ((2000, 2030), "2000年以降"),
-]
+ERA_SEARCH_TERMS = {
+    "1940〜1960年代": [
+        "bebop jazz",
+        "cool jazz",
+        "hard bop",
+        "jazz standard",
+        "swing jazz",
+        "jazz piano trio",
+        "jazz trumpet",
+    ],
+    "1970〜1990年代": [
+        "jazz fusion",
+        "jazz funk",
+        "post bop jazz",
+        "jazz piano",
+        "contemporary jazz",
+        "smooth jazz",
+        "jazz saxophone",
+    ],
+    "2000年以降": [
+        "modern jazz",
+        "contemporary jazz",
+        "nu jazz",
+        "jazz piano",
+        "indie jazz",
+        "jazz quartet",
+        "jazz ballad",
+    ],
+}
 
-JAZZ_SEARCH_TERMS = [
-    "jazz standard",
-    "jazz piano",
-    "jazz trumpet",
-    "jazz saxophone",
-    "bebop jazz",
-    "cool jazz",
-    "hard bop",
-    "jazz quartet",
-    "jazz trio",
-    "jazz ballad",
-]
+ERA_LABELS = list(ERA_SEARCH_TERMS.keys())
 
 SYSTEM_PROMPT = "あなたはジャズの案内人です。"
 
@@ -32,7 +45,7 @@ DESCRIPTION_PROMPT = """\
 曲名・アーティスト・アルバム・年・Apple MusicのURLはそのまま使い、変更しないでください。
 
 ---
-🎷 今日の1曲
+🎷 今日の1曲（{era_label}）
 
 **曲名**: {title}
 **アーティスト**: {artist}
@@ -49,11 +62,13 @@ DESCRIPTION_PROMPT = """\
 """
 
 
-def fetch_random_jazz_track(year_start: int, year_end: int, past_titles: set[str]) -> dict | None:
-    offsets = random.sample(range(0, 200, 25), 5)
-    term = random.choice(JAZZ_SEARCH_TERMS)
+def fetch_random_jazz_track(era_label: str, past_titles: set[str]) -> dict | None:
+    terms = ERA_SEARCH_TERMS[era_label]
+    # 検索termをシャッフルして全termを順に試す
+    shuffled_terms = random.sample(terms, len(terms))
 
-    for offset in offsets:
+    for term in shuffled_terms:
+        offset = random.choice(range(0, 200, 25))
         response = httpx.get(
             "https://itunes.apple.com/search",
             params={
@@ -71,15 +86,9 @@ def fetch_random_jazz_track(year_start: int, year_end: int, past_titles: set[str
         print(f"[debug] term={term!r} offset={offset} raw={len(raw)}", file=sys.stderr, flush=True)
 
         tracks = [t for t in raw if t.get("primaryGenreName") == "Jazz"]
-        tracks = [
-            t
-            for t in tracks
-            if (release := t.get("releaseDate", ""))
-            and release[:4].isdigit()
-            and year_start <= int(release[:4]) <= year_end
-        ]
         tracks = [t for t in tracks if t.get("trackName") not in past_titles]
         print(f"[debug] after filters={len(tracks)}", file=sys.stderr, flush=True)
+
         if tracks:
             return random.choice(tracks)
 
@@ -95,12 +104,12 @@ def main():
     # 日付をシードにすることで同日の再実行は同じ年代を選びつつ、単純な循環を避ける
     rng = random.Random(today.toordinal())
     era_index = rng.randint(0, 2)
-    (year_start, year_end), _ = ERA_YEAR_RANGES[era_index]
+    era_label = ERA_LABELS[era_index]
 
     past_songs = os.environ.get("PAST_SONGS", "").strip()
     past_titles = {line.strip() for line in past_songs.splitlines() if line.strip()}
 
-    track = fetch_random_jazz_track(year_start, year_end, past_titles)
+    track = fetch_random_jazz_track(era_label, past_titles)
 
     if track is None:
         print("Apple Musicから曲を取得できませんでした。", file=sys.stderr)
@@ -113,6 +122,7 @@ def main():
     apple_music_url = track["trackViewUrl"]
 
     prompt = DESCRIPTION_PROMPT.format(
+        era_label=era_label,
         title=title,
         artist=artist,
         album=album,
