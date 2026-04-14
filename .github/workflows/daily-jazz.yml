@@ -46,7 +46,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TODAY=$(date '+%Y-%m-%d')
+          TODAY=$(TZ=Asia/Tokyo date '+%Y-%m-%d')
           SONG=$(grep -oP '(?<=\*\*曲名\*\*: ).+' jazz_output.txt | head -1)
           ARTIST=$(grep -oP '(?<=\*\*アーティスト\*\*: ).+' jazz_output.txt | head -1)
           YEAR=$(grep -oP '(?<=\*\*年\*\*: ).+' jazz_output.txt | head -1)
