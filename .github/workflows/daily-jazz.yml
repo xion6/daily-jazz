@@ -53,4 +53,5 @@ jobs:
           gh issue create \
             --title "🎷 $TODAY - $SONG / $ARTIST ($YEAR)" \
             --body "$(cat jazz_output.txt)" \
-            --label "daily-jazz"
+            --label "daily-jazz" \
+            --assignee "${{ github.actor }}"
